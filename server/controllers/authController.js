@@ -73,4 +73,24 @@ exports.login = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Erreur du serveur.' });
   }
+};exports.getProfile = async (req, res) => {
+  res.json({ user: publicUser(req.user) });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ message: 'Le nom est requis.' });
+    }
+
+    req.user.name = name.trim();
+    await req.user.save();
+
+    res.json({ user: publicUser(req.user) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur du serveur.' });
+  }
 };
