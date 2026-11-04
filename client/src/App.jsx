@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CreateSurvey from './pages/CreateSurvey';
+import PublicSurvey from './pages/PublicSurvey';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/s/:shareId" element={<PublicSurvey />} />
         <Route
           path="/dashboard"
           element={

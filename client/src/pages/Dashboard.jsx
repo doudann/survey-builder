@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [surveys, setSurveys] = useState([]);
   const [error, setError] = useState('');
+  const [copiedId, setCopiedId] = useState('');
 
   useEffect(() => {
     async function loadDashboard() {
@@ -41,6 +42,15 @@ export default function Dashboard() {
   function handleLogout() {
     localStorage.removeItem('token');
     navigate('/login', { replace: true });
+  }
+
+  async function handleCopyLink(survey) {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/s/${survey.shareId}`);
+      setCopiedId(survey._id);
+    } catch {
+      setError('Copie impossible.');
+    }
   }
 
   async function handleDelete(id) {
@@ -89,6 +99,11 @@ export default function Dashboard() {
               {STATUS_LABELS[survey.status]} · {survey.questions.length} question(s) ·{' '}
               {survey.category}
             </p>
+            {survey.status === 'published' && (
+              <button type="button" onClick={() => handleCopyLink(survey)}>
+                {copiedId === survey._id ? 'Lien copié !' : 'Copier le lien'}
+              </button>
+            )}
             <button type="button" onClick={() => handleDelete(survey._id)}>
               Supprimer
             </button>

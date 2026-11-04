@@ -112,6 +112,17 @@ textarea { min-height: 100px; }
 
 .checkbox-row input { width: auto; }
 
+.question-title {
+  margin: 0;
+  font-weight: bold;
+}
+
+.rating-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .button-link {
   padding: 10px 14px;
   border-radius: 6px;

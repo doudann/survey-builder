@@ -10,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/surveys', require('./routes/surveyRoutes'));
+app.use('/api/public/surveys', require('./routes/publicSurveyRoutes'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serveur Survey Builder actif' });
 });
