@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
-
+app.use('/api/surveys', require('./routes/surveyRoutes'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serveur Survey Builder actif' });
 });
