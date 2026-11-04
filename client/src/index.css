@@ -62,3 +62,64 @@ button:disabled { opacity: 0.6; }
   gap: 12px;
   flex-wrap: wrap;
 }
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font: inherit;
+}
+
+textarea { min-height: 100px; }
+
+.survey-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.question-card,
+.survey-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+}
+
+.survey-card h3,
+.survey-card p { margin: 0; }
+
+.options-list,
+.form-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.option-row {
+  display: flex;
+  gap: 8px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-row input { width: auto; }
+
+.button-link {
+  padding: 10px 14px;
+  border-radius: 6px;
+  color: white;
+  background: #2563eb;
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  .form-actions { grid-template-columns: 1fr 1fr; }
+}

@@ -1,25 +1,41 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+
+const STATUS_LABELS = {
+  draft: 'Brouillon',
+  published: 'Publié',
+  closed: 'Fermé',
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [surveys, setSurveys] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function loadProfile() {
+    async function loadDashboard() {
       try {
-        const response = await api.get('/auth/me');
-        setUser(response.data.user);
-      } catch {
-        localStorage.removeItem('token');
-        setError('Session expirée. Reconnecte-toi.');
-        navigate('/login', { replace: true });
+        const [profileResponse, surveysResponse] = await Promise.all([
+          api.get('/auth/me'),
+          api.get('/surveys'),
+        ]);
+
+        setUser(profileResponse.data.user);
+        setSurveys(surveysResponse.data.surveys);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        setError('Impossible de charger le tableau de bord.');
       }
     }
 
-    loadProfile();
+    loadDashboard();
   }, [navigate]);
 
   function handleLogout() {
@@ -27,7 +43,20 @@ export default function Dashboard() {
     navigate('/login', { replace: true });
   }
 
-  if (error) {
+  async function handleDelete(id) {
+    if (!window.confirm('Supprimer ce sondage ?')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/surveys/${id}`);
+      setSurveys(surveys.filter((survey) => survey._id !== id));
+    } catch {
+      setError('Suppression impossible.');
+    }
+  }
+
+  if (error && !user) {
     return <p className="error">{error}</p>;
   }
 
@@ -42,8 +71,30 @@ export default function Dashboard() {
         <button type="button" onClick={handleLogout}>Se déconnecter</button>
       </header>
 
-      <p>Bienvenue sur Survey Builder.</p>
-      <p>Tes sondages apparaîtront bientôt ici.</p>
+      {error && <p className="error">{error}</p>}
+
+      <div className="dashboard-header">
+        <h2>Mes sondages</h2>
+        <Link className="button-link" to="/surveys/new">Créer un sondage</Link>
+      </div>
+
+      {surveys.length === 0 ? (
+        <p>Tu n'as pas encore de sondage.</p>
+      ) : (
+        surveys.map((survey) => (
+          <article className="survey-card" key={survey._id}>
+            <h3>{survey.title}</h3>
+            <p>{survey.description || 'Sans description'}</p>
+            <p>
+              {STATUS_LABELS[survey.status]} · {survey.questions.length} question(s) ·{' '}
+              {survey.category}
+            </p>
+            <button type="button" onClick={() => handleDelete(survey._id)}>
+              Supprimer
+            </button>
+          </article>
+        ))
+      )}
     </main>
   );
 }
