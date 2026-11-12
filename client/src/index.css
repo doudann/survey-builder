@@ -200,3 +200,9 @@ textarea { min-height: 100px; }
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.chart-box {
+  position: relative;
+  height: 260px;
+  margin: 1rem 0;
+}

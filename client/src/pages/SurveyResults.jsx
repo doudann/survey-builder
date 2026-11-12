@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+import QuestionChart from '../components/QuestionChart';
 
 const TYPE_LABELS = {
   'short-answer': 'Réponse courte',
@@ -56,6 +57,7 @@ function QuestionResult({ question }) {
             <p className="result-average">Moyenne : {question.average} / 5</p>
           )}
           {/* For checkboxes, a respondent can tick several options, so shares are per respondent. */}
+          <QuestionChart type={question.type} counts={question.counts} />
           <CountBars counts={question.counts} total={question.answered} />
         </>
       ) : (
