@@ -134,3 +134,69 @@ textarea { min-height: 100px; }
 @media (min-width: 640px) {
   .form-actions { grid-template-columns: 1fr 1fr; }
 }
+
+.button-link { text-align: center; }
+
+.results-header { margin: 16px 0; }
+.results-header h1 { margin: 0 0 8px; }
+.results-header p { margin: 0; color: #4b5563; }
+
+.results-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-tile {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+}
+
+.stat-value { font-size: 1.8rem; font-weight: bold; color: #2563eb; }
+.stat-value-small { font-size: 1.2rem; }
+.stat-label, .result-meta { color: #6b7280; font-size: 0.9rem; }
+.result-average { margin: 0; font-weight: bold; }
+
+.result-bars,
+.text-answers {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.result-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.result-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.text-answers { max-height: 320px; overflow-y: auto; }
+
+.text-answers li {
+  padding: 10px;
+  border-radius: 6px;
+  background: #f9fafb;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

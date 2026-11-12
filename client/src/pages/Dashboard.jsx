@@ -99,6 +99,11 @@ export default function Dashboard() {
               {STATUS_LABELS[survey.status]} · {survey.questions.length} question(s) ·{' '}
               {survey.category}
             </p>
+            {survey.status !== 'draft' && (
+              <Link className="button-link" to={`/surveys/${survey._id}/results`}>
+                Voir les résultats
+              </Link>
+            )}
             {survey.status === 'published' && (
               <button type="button" onClick={() => handleCopyLink(survey)}>
                 {copiedId === survey._id ? 'Lien copié !' : 'Copier le lien'}
