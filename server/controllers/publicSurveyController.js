@@ -1,8 +1,22 @@
+const crypto = require('crypto');
 const Response = require('../models/Response');
 const Survey = require('../models/Survey');
 
 const MAX_TEXT_LENGTH = 5000;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_RESPONSES_PER_IP = 20;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Empreinte HMAC : impossible de retrouver la valeur d'origine sans le secret
+function hashValue(value) {
+  const secret = process.env.HASH_SECRET;
+
+  if (!secret) {
+    throw new Error('HASH_SECRET manquant dans le fichier .env');
+  }
+
+  return crypto.createHmac('sha256', secret).update(value).digest('hex');
+}
 
 // The form stores a calendar date, so a survey stays open until the end of that day.
 function isExpired(survey) {
@@ -101,6 +115,27 @@ exports.submitResponse = async (req, res) => {
       return res.status(400).json({ message: 'Réponses invalides.' });
     }
 
+    const { respondentId } = req.body;
+
+    if (typeof respondentId !== 'string' || !UUID_PATTERN.test(respondentId)) {
+      return res.status(400).json({ message: 'Identifiant de répondant invalide.' });
+    }
+
+    const respondentKey = hashValue(`${survey._id}:${respondentId}`);
+    const ipHash = hashValue(`${survey._id}:${req.ip}`);
+
+    if (await Response.exists({ survey: survey._id, respondentKey })) {
+      return res.status(409).json({ message: 'Tu as déjà répondu à ce sondage.' });
+    }
+
+    const responsesFromIp = await Response.countDocuments({ survey: survey._id, ipHash });
+
+    if (responsesFromIp >= MAX_RESPONSES_PER_IP) {
+      return res
+        .status(429)
+        .json({ message: 'Trop de réponses depuis cette connexion. Réessaie plus tard.' });
+    }
+
     const submitted = new Map(
       req.body.answers.map((answer) => [String(answer?.questionId), answer?.value])
     );
@@ -132,9 +167,14 @@ exports.submitResponse = async (req, res) => {
       answers.push({ questionId: question._id, value: cleanedValue });
     }
 
-    await Response.create({ survey: survey._id, answers });
+    await Response.create({ survey: survey._id, answers, respondentKey, ipHash });
     res.status(201).json({ message: 'Merci pour ta réponse.' });
   } catch (error) {
+    // 11000 = doublon refusé par l'index unique (deux envois au même moment)
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Tu as déjà répondu à ce sondage.' });
+    }
+
     console.error(error);
     res.status(500).json({ message: 'Erreur du serveur.' });
   }

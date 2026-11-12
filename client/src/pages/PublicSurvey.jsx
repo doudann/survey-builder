@@ -116,6 +116,53 @@ function QuestionField({ question, value, onChange }) {
   }
 }
 
+// UUID v4 aléatoire. crypto.randomUUID n'existe qu'en HTTPS ou sur localhost,
+// d'où le repli sur crypto.getRandomValues (ex. test sur téléphone en http://192.168.x.x).
+function randomId() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+// Identifiant aléatoire propre à ce navigateur, gardé entre les visites
+function getRespondentId() {
+  try {
+    let id = localStorage.getItem('respondentId');
+
+    if (!id) {
+      id = randomId();
+      localStorage.setItem('respondentId', id);
+    }
+
+    return id;
+  } catch {
+    return randomId();
+  }
+}
+
+function hasAnswered(shareId) {
+  try {
+    return localStorage.getItem(`answered:${shareId}`) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markAnswered(shareId) {
+  try {
+    localStorage.setItem(`answered:${shareId}`, '1');
+  } catch {
+    // Stockage indisponible : le serveur bloquera quand même les doublons
+  }
+}
+
 export default function PublicSurvey() {
   const { shareId } = useParams();
   const [survey, setSurvey] = useState(null);
@@ -123,6 +170,7 @@ export default function PublicSurvey() {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [alreadyAnswered, setAlreadyAnswered] = useState(() => hasAnswered(shareId));
 
   useEffect(() => {
     async function loadSurvey() {
@@ -161,9 +209,17 @@ export default function PublicSurvey() {
           questionId,
           value,
         })),
+        respondentId: getRespondentId(),
       });
+      markAnswered(shareId);
       setSubmitted(true);
     } catch (err) {
+      if (err.response?.status === 409) {
+        markAnswered(shareId);
+        setAlreadyAnswered(true);
+        return;
+      }
+
       setError(err.response?.data?.message || 'Envoi impossible.');
     } finally {
       setSending(false);
@@ -175,6 +231,15 @@ export default function PublicSurvey() {
       <main className="dashboard">
         <h1>Merci !</h1>
         <p>Ta réponse a bien été enregistrée.</p>
+      </main>
+    );
+  }
+
+  if (alreadyAnswered) {
+    return (
+      <main className="dashboard">
+        <h1>Déjà répondu</h1>
+        <p>Tu as déjà répondu à ce sondage. Merci pour ta participation !</p>
       </main>
     );
   }
